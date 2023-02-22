@@ -1,5 +1,5 @@
 # summary: main.py gets dim log and outputs an Excel table formatted for analysis
-
+ 
 # import modules
 import os
 from os.path import exists
