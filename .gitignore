@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyc
 
 # C extensions
 *.so
@@ -54,11 +55,9 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
+# Misc stuff:
 *.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+*.ico
 
 # Flask stuff:
 instance/
@@ -122,4 +121,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
