@@ -1,5 +1,4 @@
 # summary: main.py gets dim log and outputs an Excel table formatted for analysis
-#index
 
 # import modules
 import os
