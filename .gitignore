@@ -1,5 +1,6 @@
 # Byte-compiled / optimized / DLL files
 src/__pycache__/*
+tests/*
 *.py[cod]
 *$py.class
 
@@ -123,4 +124,5 @@ dmypy.json
 
 # Excel files
 *.xlsx
+test.py
 tests/test.py
