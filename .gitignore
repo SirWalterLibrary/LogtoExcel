@@ -123,3 +123,4 @@ dmypy.json
 
 # Excel files
 *.xlsx
+tests/test.py
