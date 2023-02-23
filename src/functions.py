@@ -13,14 +13,16 @@ class Log:
         # create empty data list
         self.data = []
 
-        # gets headers of headers.txt
+        # get headers from headers.txt
         self.headers = self.getHeaders()
 
     def getData(self):
-        # open dialog to browse file in File Explorer 
+        # replace default icon to log.ico 
         win = Tk()
         win.withdraw()
         win.iconbitmap(r'src/log.ico')
+
+        # open dialog to browse file in File Explorer
         filepath = filedialog.askopenfilename(initialdir='/', 
                                               title="Select a File", 
                                               filetypes=[("Log files", ".txt .log")])
@@ -49,7 +51,7 @@ class Log:
         # open header file
         with open(filename) as file:
             # get all headers
-            if line_number == None:
+            if line_number is None:
                 return [x.strip(' ') for x in (" ".join(line.strip() for line in file)).split(';')]
             else:
                 for i, line in enumerate(file):
@@ -78,7 +80,8 @@ class Category(Log):
         full_range = cell_range.CellRange(min_col=worksheet.min_column,
                                           min_row=worksheet.min_row,
                                           max_col=worksheet.max_column,
-                                          max_row=worksheet.max_row).coord
+                                          max_row=worksheet.max_row
+                                          ).coord
 
         # set table format
         mediumStyle =TableStyleInfo(name='TableStyleMedium1',
