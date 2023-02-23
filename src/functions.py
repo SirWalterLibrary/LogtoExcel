@@ -3,7 +3,7 @@ import csv
 import pandas as pd
 from sys import exit
 from tkinter import Tk, filedialog
-from openpyxl.worksheet import cell_range 
+from openpyxl.worksheet.cell_range import CellRange 
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.utils.dataframe import dataframe_to_rows
 
@@ -77,7 +77,7 @@ class Category(Log):
     
     def formatTable(self, worksheet):
         # define range
-        full_range = cell_range.CellRange(min_col=worksheet.min_column,
+        full_range = CellRange(min_col=worksheet.min_column,
                                           min_row=worksheet.min_row,
                                           max_col=worksheet.max_column,
                                           max_row=worksheet.max_row
