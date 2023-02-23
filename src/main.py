@@ -3,7 +3,7 @@
 # import modules
 import os
 from os.path import exists
-from functions import Data
+from functions import Log, Category
 from openpyxl import Workbook 
 
 excel_file = 'dims.xlsx'
@@ -13,21 +13,21 @@ if exists(excel_file):
     os.remove(excel_file)
 
 # initialize log
-log = Data()
+log = Log()
 
 # parse data from log
 log.parseData()
 
 # initialize "Dimensions" category
-dim = Data(1)
+dim = Category(1)
 dim(log)
 
 # initialize "Contour Verify" category
-c_v = Data(2)
+c_v = Category(2)
 c_v(log)
 
 # initialize "Corner" category
-cor = Data(3)
+cor = Category(3)
 cor(log)
 
 # open a workbook

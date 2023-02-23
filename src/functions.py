@@ -5,24 +5,16 @@ from sys import exit
 from tkinter import Tk, filedialog
 from openpyxl.worksheet import cell_range 
 from openpyxl.worksheet.table import Table, TableStyleInfo
-from openpyxl.utils import get_column_letter, column_index_from_string
 from openpyxl.utils.dataframe import dataframe_to_rows
 
-class Data:
+class Log:
 
-    def __init__(self,index=None):
-        # create empty lists
+    def __init__(self):
+        # create empty data list
         self.data = []
-        self.headers = getHeaders('src/headers.txt',index)
-        
-    def __call__(self,other):
-        # get initial headers and its range
-        initial_headers = getHeaders('src/headers.txt',0)
-        initial_range = [x + 1 for x in list(range(len(initial_headers)))]
-        
-        # split data to its respective category (i.e. Dimensions, Contour Verify, Corner)
-        self.range = initial_range + [index for index, item in enumerate(other.headers) if item in self.headers]
-        self.data = (other.data[self.range]).set_axis((initial_headers + self.headers),axis=1)
+
+        # gets headers of headers.txt
+        self.headers = self.getHeaders()
 
     def getData(self):
         # open dialog to browse file in File Explorer 
@@ -49,6 +41,56 @@ class Data:
         self.getData()
         self.data = pd.DataFrame(self.data).iloc[:,1:-1].dropna()
 
+
+    def getHeaders(self, line_number=None):
+        # specify header file
+        filename = 'src/headers.txt'
+
+        # open header file
+        with open(filename) as file:
+            # get all headers
+            if line_number == None:
+                return [x.strip(' ') for x in (" ".join(line.strip() for line in file)).split(';')]
+            else:
+                for i, line in enumerate(file):
+                    # get only the headers from the line
+                    if i == line_number:
+                        return list(filter(None,(line.strip()).split(';')))
+
+class Category(Log):
+
+    def __init__(self, index=None):
+        # calls original __init__()
+        super().__init__()
+        self.headers = self.getHeaders(index)
+
+    def __call__(self,other):
+        # get initial headers and its range
+        initial_headers = self.getHeaders(0)
+        initial_range = [x + 1 for x, header in enumerate(initial_headers)]
+        
+        # split data to its respective category (i.e. Dimensions, Contour Verify, Corner)
+        self.range = initial_range + [index for index, item in enumerate(other.headers) if item in self.headers]
+        self.data = (other.data[self.range]).set_axis((initial_headers + self.headers),axis=1)
+    
+    def formatTable(self, worksheet):
+        # define range
+        full_range = cell_range.CellRange(min_col=worksheet.min_column,
+                                          min_row=worksheet.min_row,
+                                          max_col=worksheet.max_column,
+                                          max_row=worksheet.max_row).coord
+
+        # set table format
+        mediumStyle =TableStyleInfo(name='TableStyleMedium1',
+                                    showRowStripes=True)
+        # create a table
+        table = Table(ref=full_range,
+                    displayName=(worksheet.title).replace(" ", "_"),
+                    tableStyleInfo=mediumStyle)
+
+        # add the table to the worksheet
+        worksheet.add_table(table)
+
     def paste2Excel(self,worksheet,title):
         # title the worksheet
         worksheet.title = title
@@ -58,34 +100,4 @@ class Data:
             worksheet.append(rows)
 
         # format table from data
-        formatTable(worksheet)
-
-def formatTable(worksheet):
-    # define range
-    full_range = cell_range.CellRange(min_col=worksheet.min_column,
-                                      min_row=worksheet.min_row,
-                                      max_col=worksheet.max_column,
-                                      max_row=worksheet.max_row).coord
-
-    # set table format
-    mediumStyle =TableStyleInfo(name='TableStyleMedium1',
-                                showRowStripes=True)
-    # create a table
-    table = Table(ref=full_range,
-                  displayName=(worksheet.title).replace(" ", "_"),
-                  tableStyleInfo=mediumStyle)
-
-    # add the table to the worksheet
-    worksheet.add_table(table)
-
-def getHeaders(filename, line_number):
-    # open header file
-    with open(filename) as file:
-        # get all headers
-        if line_number == None:
-            return [x.strip(' ') for x in (" ".join(line.strip() for line in file)).split(';')]
-        else:
-            for i, line in enumerate(file):
-                # get only the headers from the line
-                if i == line_number:
-                    return list(filter(None,(line.strip()).split(';')))
+        self.formatTable(worksheet)
