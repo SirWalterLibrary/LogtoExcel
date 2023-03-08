@@ -7,6 +7,9 @@ tests/*
 # C extensions
 *.so
 
+# zipped folders
+*.zip
+
 # Distribution / packaging
 .Python
 build/
