@@ -129,3 +129,4 @@ dmypy.json
 *.xlsx
 test.py
 tests/test.py
+LogtoExcel.zip
