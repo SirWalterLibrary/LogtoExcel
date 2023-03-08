@@ -1,11 +1,16 @@
 # summary: main.py gets dim log and outputs an Excel table formatted for analysis
  
 # import modules
+import sys
 import os
 from os.path import exists
 from functions import Log, Category
 from openpyxl import Workbook 
 
+# add virtual environment to path
+sys.path.insert(0, "src/.venv")
+
+# specify excel file name
 excel_file = 'dims.xlsx'
 
 # remove if "dims.xlsx" exists
