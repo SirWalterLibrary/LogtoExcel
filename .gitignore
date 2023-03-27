@@ -5,7 +5,6 @@ tests/*
 *$py.class
 
 # zipped folders
-*.zip
 *.txt
 
 # Distribution / packaging
@@ -29,9 +28,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+#PyInstaller
 *.manifest
 *.spec
 
@@ -44,6 +41,3 @@ MANIFEST
 
 # Excel files
 *.xlsx
-test.py
-tests/test.py
-LogtoExcel.zip
