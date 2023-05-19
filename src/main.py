@@ -6,7 +6,7 @@ from sys import exit
 from os.path import exists
 import pandas as pd
 import tkinter as tk
-from tkinter import ttk, messagebox, Tk, filedialog
+from tkinter import messagebox, Tk, filedialog
 from openpyxl import Workbook 
 from openpyxl.worksheet.cell_range import CellRange 
 from openpyxl.worksheet.table import Table, TableStyleInfo
@@ -77,24 +77,23 @@ def main():
                 initial_range = [x + 1 for x, header in enumerate(initial_headers)]
                 
                 # split data to its respective category (i.e. Dimensions, Contour Verify, Corner)
-                self.range = initial_range + [index for index, item in enumerate(other.headers) if item in self.headers]
+                self.range = initial_range + [index + 1 for index, item in enumerate(other.headers) if item in self.headers]
                 self.data = (other.data[self.range]).set_axis((initial_headers + self.headers),axis=1)
             
             def formatTable(self, worksheet):
                 # define range
                 full_range = CellRange(min_col=worksheet.min_column,
-                                                min_row=worksheet.min_row,
-                                                max_col=worksheet.max_column,
-                                                max_row=worksheet.max_row
-                                                ).coord
+                                       min_row=worksheet.min_row,
+                                       max_col=worksheet.max_column,
+                                       max_row=worksheet.max_row).coord
 
                 # set table format
                 mediumStyle =TableStyleInfo(name='TableStyleMedium1',
                                             showRowStripes=True)
                 # create a table
                 table = Table(ref=full_range,
-                            displayName=(worksheet.title).replace(" ", "_"),
-                            tableStyleInfo=mediumStyle)
+                              displayName=(worksheet.title).replace(" ", "_"),
+                              tableStyleInfo=mediumStyle)
 
                 # add the table to the worksheet
                 worksheet.add_table(table)
