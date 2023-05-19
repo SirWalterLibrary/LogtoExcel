@@ -12,12 +12,6 @@ from openpyxl.worksheet.cell_range import CellRange
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.utils.dataframe import dataframe_to_rows
 
-
-global excel_file 
-
-# specify excel file name
-excel_file = 'dims.xlsx'
-
 def main():
 
     def script(filepath):
@@ -125,15 +119,19 @@ def main():
         log.parseData()
 
         # initialize "Dimensions" category
-        dim = Category(1)
+        res = Category(1)
+        res(log)
+
+        # initialize "Dimensions" category
+        dim = Category(2)
         dim(log)
 
         # initialize "Contour Verify" category
-        c_v = Category(2)
+        c_v = Category(3)
         c_v(log)
 
         # initialize "Corner" category
-        cor = Category(3)
+        cor = Category(4)
         cor(log)
 
         # open a workbook
@@ -141,16 +139,20 @@ def main():
 
         # create "Dimensions" sheet & paste data
         ws1 = wb.active
-        dim.paste2Excel(ws1,"Dimensions")
+        res.paste2Excel(ws1,"Results")
+
+        # create "Dimensions" sheet & paste data
+        ws2 = wb.create_sheet()
+        dim.paste2Excel(ws2,"Dimensions")
 
 
         # create "Contour Verify" sheet & paste data
-        ws2 = wb.create_sheet()
-        c_v.paste2Excel(ws2,"Contour Verify")
+        ws3 = wb.create_sheet()
+        c_v.paste2Excel(ws3,"Contour Verify")
 
         # create "Corner" sheet & paste data
-        ws3 = wb.create_sheet()
-        cor.paste2Excel(ws3,"Corner")
+        ws4 = wb.create_sheet()
+        cor.paste2Excel(ws4,"Corner")
 
         # save workbook
         wb.save(excel_file)
@@ -223,6 +225,9 @@ def main():
                 return True
             except OSError:  
                 return False
+
+    # specify excel file name
+    excel_file = 'dims.xlsx'
 
     window = tk.Tk()
     window.title("Input Log Data")
