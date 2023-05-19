@@ -12,6 +12,12 @@ from openpyxl.worksheet.cell_range import CellRange
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.utils.dataframe import dataframe_to_rows
 
+
+global excel_file 
+
+# specify excel file name
+excel_file = 'dims.xlsx'
+
 def main():
 
     def script(filepath):
@@ -111,14 +117,7 @@ def main():
 
         # add virtual environment to path
         sys.path.insert(0, "src/.venv")
-
-        # specify excel file name
-        excel_file = 'dims.xlsx'
-
-        # remove if "dims.xlsx" exists
-        if exists(excel_file):
-            os.remove(excel_file)
-
+        
         # initialize log
         log = Log()
 
@@ -179,6 +178,11 @@ def main():
         elif not os.path.exists(filepath):
             messagebox.showerror("Error","Filepath does not exist...")
             return
+        
+        # check if excel file can be closed
+        if not close_excel(excel_file):
+            messagebox.showerror("Error","\"dims.xlsx\" is still open. You need to close it!")
+            return
 
         script(filepath)
         window.destroy()
@@ -194,6 +198,11 @@ def main():
             messagebox.showerror("Error","Filepath does not exist...")
             return
         
+        # check if excel file can be closed
+        if not close_excel(excel_file):
+            messagebox.showerror("Error","\"dims.xlsx\" is still open. You need to close it!")
+            return
+        
         script(filepath)
         window.destroy()
         exit(0)
@@ -205,6 +214,16 @@ def main():
         import_entry.insert(0,filepath)
         return
         
+    def close_excel(excel_file):
+
+        # remove if "dims.xlsx" exists
+        if exists(excel_file):
+            try:
+                os.remove(excel_file)
+                return True
+            except OSError:  
+                return False
+
     window = tk.Tk()
     window.title("Input Log Data")
     window.geometry("500x210")
