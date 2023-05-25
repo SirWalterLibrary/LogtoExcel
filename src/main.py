@@ -26,10 +26,6 @@ def main():
                 self.headers = self.getHeaders()
 
             def getData(self):
-                # replace default icon to log.ico 
-                win = Tk()
-                win.withdraw()
-                win.iconbitmap(r'src/log.ico')
         
                 # check if user imported file 
                 if filepath != '':
