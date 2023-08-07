@@ -24,15 +24,7 @@ def main():
 
                 # get headers from headers.txt
                 self.headers = self.getHeaders()
-
-            def resource_path(relative):
-                return os.path.join(
-                    os.environ.get(
-                        "_MEIPASS2",
-                    os.path.abspath(".")
-                                ),
-        relative
-    )
+                
             def getData(self):
         
                 # check if user imported file 
@@ -54,7 +46,7 @@ def main():
 
             def getHeaders(self, line_number=None):
                 # specify header file
-                filename = resource_path("src/headers.txt")
+                filename = "src/headers.txt"
                 print(filename)
 
                 # open header file
