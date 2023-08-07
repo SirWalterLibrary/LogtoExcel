@@ -6,7 +6,7 @@ from sys import exit
 from os.path import exists
 import pandas as pd
 import tkinter as tk
-from tkinter import messagebox, Tk, filedialog
+from tkinter import messagebox, filedialog
 from openpyxl import Workbook 
 from openpyxl.styles import PatternFill
 from openpyxl.formatting.rule import CellIsRule
@@ -25,6 +25,14 @@ def main():
                 # get headers from headers.txt
                 self.headers = self.getHeaders()
 
+            def resource_path(relative):
+                return os.path.join(
+                    os.environ.get(
+                        "_MEIPASS2",
+                    os.path.abspath(".")
+                                ),
+        relative
+    )
             def getData(self):
         
                 # check if user imported file 
@@ -46,7 +54,8 @@ def main():
 
             def getHeaders(self, line_number=None):
                 # specify header file
-                filename = 'src/headers.txt'
+                filename = resource_path("src/headers.txt")
+                print(filename)
 
                 # open header file
                 with open(filename) as file:
