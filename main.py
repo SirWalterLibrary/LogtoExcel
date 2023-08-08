@@ -21,7 +21,11 @@ def resource_path(relative_path):
 
 def main():
 
+    
     def script(filepath,option=None,length=0,width=0,height=0):
+        # specify excel file name
+        excel_file = export_entry.get()
+
         class Log:
             def __init__(self):
                 # create empty data list
@@ -200,7 +204,10 @@ def main():
             return
         
         # check if excel file can be closed
-        if not close_excel(excel_file):
+        if not close_excel():
+            # specify excel file name
+            excel_file = export_entry.get()
+
             messagebox.showerror("Error","\"dims.xlsx\" is still open. You need to close it!")
             return
 
@@ -224,7 +231,10 @@ def main():
             return
         
         # check if excel file can be closed
-        if not close_excel(excel_file):
+        if not close_excel():
+            # specify excel file name
+            excel_file = export_entry.get()
+
             messagebox.showerror("Error","\"dims.xlsx\" is still open. You need to close it!")
             f = open(excel_file, 'x')
             return
@@ -239,13 +249,22 @@ def main():
         exit(0)
 
     def import_file():
-        filepath = filedialog.askopenfilename(initialdir='/',title="Select a File",filetypes=[("Log files", ".txt .log")])
+        filepath = filedialog.askopenfilename(title="Select a File",filetypes=[("Log files", ".txt .log")])
         
         import_entry.delete(0,"end")
         import_entry.insert(0,filepath)
         return
+    
+    def export_file():
+       exportpath = filedialog.asksaveasfilename(title="Save as", initialfile = 'dimensions.xlsx', filetypes=[("Excel File",".xlsx")])
+       
+       export_entry.delete(0,"end")
+       export_entry.insert(0,exportpath)
+       return
         
-    def close_excel(excel_file):
+    def close_excel():
+        # specify excel file name
+        excel_file = export_entry.get()
 
         # remove if "dims.xlsx" exists
         if not exists(excel_file):
@@ -258,48 +277,52 @@ def main():
             except:
                 return False
 
-    # specify excel file name
-    excel_file = 'dims.xlsx'
-
     # create a UI window
     window = tk.Tk()
     window.title("Input Log Data")
-    window.geometry("500x210")
+    window.geometry("600x300")
 
     frame = tk.Frame(window)
     frame.pack()
 
     # declare an "Input Tolerance" frame
     input_tol_frame = tk.LabelFrame(frame,text="Input Tolerance")
-    input_tol_frame.grid(row=0, column=0, sticky="ns", pady=10)
+    input_tol_frame.grid(column=1, sticky="ns")
 
     # create an entry for "Length"
     len_label = tk.Label(input_tol_frame,text="Length")
     len_label.grid(row=0,column=0)
-    len_entry = tk.Entry(input_tol_frame)
+    len_entry = tk.Entry(input_tol_frame, width=15)
     len_entry.grid(row=1, column=0)
 
     # create an entry for "Width"
     wid_label = tk.Label(input_tol_frame,text="Width")
-    wid_label.grid(row=0, column=1)
-    wid_entry = tk.Entry(input_tol_frame)
-    wid_entry.grid(row=1, column=1)
+    wid_label.grid(row=2, column=0)
+    wid_entry = tk.Entry(input_tol_frame, width=15)
+    wid_entry.grid(row=3, column=0)
 
     # create an entry for "Height"
     hei_label = tk.Label(input_tol_frame,text="Height")
-    hei_label.grid(row=0,column=2)
-    hei_entry = tk.Entry(input_tol_frame)
-    hei_entry.grid(row=1,column=2)
+    hei_label.grid(row=4,column=0)
+    hei_entry = tk.Entry(input_tol_frame, width=15)
+    hei_entry.grid(row=5,column=0)
 
     # declare an "Input File" frame
-    import_frame = tk.LabelFrame(frame, borderwidth=0)
-    import_frame.grid(row=1, column=0)
+    file_frame = tk.LabelFrame(frame, text="Import/Export")
+    file_frame.grid(row=0, column=0)
 
-    # create an "input File" button
-    import_entry = tk.Entry(import_frame, width=50)
+    # create an "Input File" button
+    import_entry = tk.Entry(file_frame, width=50)
     import_entry.grid(row=0, column=1)
-    import_button = tk.Button(import_frame, text="Import File", command=lambda:import_file())
+    import_button = tk.Button(file_frame, text="Import file", width= 8, command=lambda:import_file())
     import_button.grid(row=0, column=0)
+
+    # create an "Output Excel" button
+    export_entry = tk.Entry(file_frame, width=50)
+    export_entry.grid(row=1, column=1)
+    export_button = tk.Button(file_frame, text="Save as", width= 8, command=lambda:export_file())
+    export_button.grid(row=1, column=0)
+
 
     # declare a "Run with" frame
     validate_frame = tk.LabelFrame(frame, text="Run with or without tolerances?")
@@ -315,8 +338,8 @@ def main():
     for widget in input_tol_frame.winfo_children():
         widget.grid_configure(padx=10, pady=5)
 
-    for widget in import_frame.winfo_children():
-        widget.grid_configure(padx=10, pady=5)
+    for widget in file_frame.winfo_children():
+        widget.grid_configure(padx=10, pady=10)
 
     for widget in validate_frame.winfo_children():
         widget.grid_configure(padx=30, pady=10)
