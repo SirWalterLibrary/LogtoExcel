@@ -136,10 +136,6 @@ def main():
         c_v = Category(3)
         c_v(log)
 
-        # initialize "Corner" category
-        cor = Category(4)
-        cor(log)
-
         # open a workbook
         wb = Workbook()
 
@@ -151,16 +147,16 @@ def main():
 
         # create a formula to find difference between measured & expected dimensions
         for row_num in range(2, ws1.max_row+1):
-            ws1['L'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(I'+str(row_num)+',1)))),"",F'+str (row_num)+'-I'+str (row_num)+')'
-            ws1['M'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(J'+str(row_num)+',1)))),"",G'+str (row_num)+'-J'+str (row_num)+')'
-            ws1['N'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(K'+str(row_num)+',1)))),"",H'+str (row_num)+'-K'+str (row_num)+')'
+            ws1['T'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(Q'+str(row_num)+',1)))),"",F'+str (row_num)+'-Q'+str (row_num)+')'
+            ws1['U'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(R'+str(row_num)+',1)))),"",G'+str (row_num)+'-R'+str (row_num)+')'
+            ws1['V'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(S'+str(row_num)+',1)))),"",H'+str (row_num)+'-S'+str (row_num)+')'
         
         # color cells red if error is out of spec
             red_color = 'ffc7ce'
             red_fill = PatternFill(start_color=red_color, end_color=red_color, fill_type='solid')
-            ws1.conditional_formatting.add('L2:L'+str(ws1.max_row), CellIsRule(operator='notBetween', formula=['-' + length,length], fill=red_fill))
-            ws1.conditional_formatting.add('M2:M'+str(ws1.max_row), CellIsRule(operator='notBetween', formula=['-' + width,width], fill=red_fill))
-            ws1.conditional_formatting.add('N2:N'+str(ws1.max_row), CellIsRule(operator='notBetween', formula=['-' + height,height], fill=red_fill))
+            ws1.conditional_formatting.add('T2:T'+str(ws1.max_row), CellIsRule(operator='notBetween', formula=['-' + length,length], fill=red_fill))
+            ws1.conditional_formatting.add('U2:U'+str(ws1.max_row), CellIsRule(operator='notBetween', formula=['-' + width,width], fill=red_fill))
+            ws1.conditional_formatting.add('V2:V'+str(ws1.max_row), CellIsRule(operator='notBetween', formula=['-' + height,height], fill=red_fill))
 
         # create "Dimensions" sheet & paste data
         ws2 = wb.create_sheet()
@@ -169,10 +165,6 @@ def main():
         # create "Contour Verify" sheet & paste data
         ws3 = wb.create_sheet()
         c_v.paste2Excel(ws3,"Contour Verify")
-
-        # create "Corner" sheet & paste data
-        ws4 = wb.create_sheet()
-        cor.paste2Excel(ws4,"Corner")
 
         # save workbook
         wb.save(excel_file)
@@ -189,12 +181,14 @@ def main():
         width = wid_entry.get()
         height = hei_entry.get()
 
+        # ensure that user inputs tolerances
         try:
             int(length), int(width), int(height)
         except:
             messagebox.showerror("Error", "Please input numeric tolerances")
             return
 
+        # 
         log_path = import_entry.get()
         
         if log_path == '':
