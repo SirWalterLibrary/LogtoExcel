@@ -297,11 +297,11 @@ def main():
     export_button.grid(row=1, column=0)
 
     # declare a "Run with" frame
-    validate_frame = tk.LabelFrame(frame, text="Run with or without tolerances?")
+    validate_frame = tk.LabelFrame(frame, text="Run the script?")
     validate_frame.grid(row=3, column=0)
 
     # create button for "With" & "Without" tolerances
-    with_button = tk.Button(validate_frame, text="With", width=20, command=with_tol)
+    with_button = tk.Button(validate_frame, text="Run", width=40, command=with_tol)
     with_button.grid(row=0, column=0)
 
     # adjust padding
