@@ -14,16 +14,18 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.cell_range import CellRange 
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
+log_path = None
+excel_path = None
 
 def main():
 
-    
-    def script(filepath,option=None,length=0,width=0,height=0):
-        # specify excel file name
+    def resource_path(relative_path):
+        # get absolute path to resource
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base_path, relative_path)
+
+    def script(log_path,length=0,width=0,height=0):
+        # retrieve excel file path
         excel_file = export_entry.get()
 
         class Log:
@@ -37,9 +39,9 @@ def main():
             def getData(self):
         
                 # check if user imported file 
-                if filepath != '':
+                if log_path != '':
                     # append file contents into data list 
-                    with open(filepath) as logFile:
+                    with open(log_path) as logFile:
                         for row in csv.reader(logFile, delimiter=';'):
                             self.data.append(row)
                 else:
@@ -51,7 +53,6 @@ def main():
                 # create data frame and parse through data
                 self.getData()
                 self.data = pd.DataFrame(self.data).iloc[:,1:-1].dropna()
-
 
             def getHeaders(self, line_number=None):
                 # specify header file
@@ -108,8 +109,7 @@ def main():
                 
                 if not add_cols == None:
                     content = [''] * len(add_cols)
-                    self.data[add_cols] = content
-                    
+                    self.data[add_cols] = content 
 
                 # paste data frame into Excel worksheet
                 for rows in dataframe_to_rows(self.data, index=False, header=True):
@@ -149,18 +149,18 @@ def main():
         error_cols = ['Error L','Error W','Error H']
         res.paste2Excel(ws1,"Results", expected_cols + error_cols)
 
+        # create a formula to find difference between measured & expected dimensions
         for row_num in range(2, ws1.max_row+1):
             ws1['L'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(I'+str(row_num)+',1)))),"",F'+str (row_num)+'-I'+str (row_num)+')'
             ws1['M'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(J'+str(row_num)+',1)))),"",G'+str (row_num)+'-J'+str (row_num)+')'
             ws1['N'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(K'+str(row_num)+',1)))),"",H'+str (row_num)+'-K'+str (row_num)+')'
         
-        if option == 1:
+        # color cells red if error is out of spec
             red_color = 'ffc7ce'
             red_fill = PatternFill(start_color=red_color, end_color=red_color, fill_type='solid')
             ws1.conditional_formatting.add('L2:L'+str(ws1.max_row), CellIsRule(operator='notBetween', formula=['-' + length,length], fill=red_fill))
             ws1.conditional_formatting.add('M2:M'+str(ws1.max_row), CellIsRule(operator='notBetween', formula=['-' + width,width], fill=red_fill))
             ws1.conditional_formatting.add('N2:N'+str(ws1.max_row), CellIsRule(operator='notBetween', formula=['-' + height,height], fill=red_fill))
-
 
         # create "Dimensions" sheet & paste data
         ws2 = wb.create_sheet()
@@ -177,7 +177,7 @@ def main():
         # save workbook
         wb.save(excel_file)
 
-        # check if "dims.xlsx" was created from log
+        # check if excel was created from log
         if exists(excel_file):
            messagebox.showinfo(title="Success!", message="Log file successfully parsed to Excel!")
            os.startfile(excel_file)
@@ -195,13 +195,13 @@ def main():
             messagebox.showerror("Error", "Please input numeric tolerances")
             return
 
-        filepath = import_entry.get()
+        log_path = import_entry.get()
         
-        if filepath == '':
+        if log_path == '':
             messagebox.showerror("Error", "You must input a log file!")
             return
-        elif not os.path.exists(filepath):
-            messagebox.showerror("Error","Filepath does not exist...")
+        elif not os.path.exists(log_path):
+            messagebox.showerror("Error","log_path does not exist...")
             return
         
         # check if excel file can be closed
@@ -211,35 +211,7 @@ def main():
             return
 
         try:
-            script(filepath,1,length,width,height)
-        except:
-            messagebox.showerror("Error", "Script cannot parse data. Check if log is formatted correctly!")
-            return
-        
-        window.destroy()
-        exit(0)
-
-    def wout_tol():
-        filepath = import_entry.get()
-
-        if filepath == '':
-            messagebox.showerror("Error", "You must input a log file!")
-            return
-        elif not os.path.exists(filepath):
-            messagebox.showerror("Error","Filepath does not exist...")
-            return
-        
-        # check if excel file can be closed
-        if not close_excel():
-            # specify excel file name
-            excel_file = export_entry.get()
-
-            messagebox.showerror("Error","\"dims.xlsx\" is still open. You need to close it!")
-            f = open(excel_file, 'x')
-            return
-        
-        try:
-            script(filepath)
+            script(log_path,length,width,height)
         except:
             messagebox.showerror("Error", "Script cannot parse data. Check if log is formatted correctly!")
             return
@@ -248,17 +220,19 @@ def main():
         exit(0)
 
     def import_file():
-        filepath = filedialog.askopenfilename(title="Select a File",filetypes=[("Log files", ".txt .log")])
+        log_path = filedialog.askopenfilename(title="Select a File",filetypes=[("Log files", ".txt .log")])
         
         import_entry.delete(0,"end")
-        import_entry.insert(0,filepath)
+        import_entry.insert(0,log_path)
         return
     
     def export_file():
-       exportpath = filedialog.asksaveasfilename(title="Save as", filetypes=[("Excel File",".xlsx")])
+       # specify excel file path
+       excel_path = filedialog.asksaveasfilename(title="Save as", filetypes=[("Excel File",".xlsx")])
        
+       # add ".xlsx" to the name of excel file
        export_entry.delete(0,"end")
-       export_entry.insert(0,exportpath + '.xlsx')
+       export_entry.insert(0,excel_path + '.xlsx')
        return
         
     def close_excel():
@@ -275,8 +249,6 @@ def main():
                 return True
             except:
                 return False
-
-
 
     # create a UI window
     window = tk.Tk()
@@ -324,7 +296,6 @@ def main():
     export_button = tk.Button(file_frame, text="Save as", width= 8, command=lambda:export_file())
     export_button.grid(row=1, column=0)
 
-
     # declare a "Run with" frame
     validate_frame = tk.LabelFrame(frame, text="Run with or without tolerances?")
     validate_frame.grid(row=3, column=0)
@@ -332,8 +303,6 @@ def main():
     # create button for "With" & "Without" tolerances
     with_button = tk.Button(validate_frame, text="With", width=20, command=with_tol)
     with_button.grid(row=0, column=0)
-    wout_button = tk.Button(validate_frame, text="Without", width=20, command=wout_tol)
-    wout_button.grid(row=0, column=1)
 
     # adjust padding
     for widget in input_tol_frame.winfo_children():
