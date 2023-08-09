@@ -180,6 +180,7 @@ def main():
         # check if "dims.xlsx" was created from log
         if exists(excel_file):
            messagebox.showinfo(title="Success!", message="Log file successfully parsed to Excel!")
+           os.startfile(excel_file)
         else:
             print("ERROR: Log file unsuccessfully parsed to Excel...")
 
@@ -205,8 +206,6 @@ def main():
         
         # check if excel file can be closed
         if not close_excel():
-            # specify excel file name
-            excel_file = export_entry.get()
 
             messagebox.showerror("Error","\"dims.xlsx\" is still open. You need to close it!")
             return
@@ -256,10 +255,10 @@ def main():
         return
     
     def export_file():
-       exportpath = filedialog.asksaveasfilename(title="Save as", initialfile = 'dimensions.xlsx', filetypes=[("Excel File",".xlsx")])
+       exportpath = filedialog.asksaveasfilename(title="Save as", filetypes=[("Excel File",".xlsx")])
        
        export_entry.delete(0,"end")
-       export_entry.insert(0,exportpath)
+       export_entry.insert(0,exportpath + '.xlsx')
        return
         
     def close_excel():
@@ -276,6 +275,8 @@ def main():
                 return True
             except:
                 return False
+
+
 
     # create a UI window
     window = tk.Tk()

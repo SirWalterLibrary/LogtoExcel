@@ -43,3 +43,4 @@ MANIFEST
 *.xlsx
 *.zip
 
+output/VMS-to-Excel.exe
