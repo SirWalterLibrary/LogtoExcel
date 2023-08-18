@@ -124,28 +124,29 @@ def main():
         # parse data from log
         log.parseData()
 
-        # initialize "Results" category
-        res = Category(1)
-        res(log)
-
         # initialize "Dimensions" category
-        dim = Category(2)
+        dim = Category(1)
         dim(log)
 
         # initialize "Contour Verify" category
-        c_v = Category(3)
+        c_v = Category(2)
         c_v(log)
+
+        # initialize "Corner" category
+        cor = Category(3)
+        cor(log)
 
         # open a workbook
         wb = Workbook()
-
-        # create "Results" sheet & paste data
+        
+        # adding columns
         ws1 = wb.active
+        added_info_cols = ['Orientation','Shape']
         expected_cols = ['Expected L','Expected W','Expected H']
         error_cols = ['Error L','Error W','Error H']
-        res.paste2Excel(ws1,"Results", expected_cols + error_cols)
+        dim.paste2Excel(ws1,"Dimensions", expected_cols + error_cols + added_info_cols)
 
-        # create a formula to find difference between measured & expected dimensions
+        # create a formula to find difference between measured & expected dimensions (ex. '=' )
         for row_num in range(2, ws1.max_row+1):
             ws1['T'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(Q'+str(row_num)+',1)))),"",F'+str (row_num)+'-Q'+str (row_num)+')'
             ws1['U'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(R'+str(row_num)+',1)))),"",G'+str (row_num)+'-R'+str (row_num)+')'
@@ -158,13 +159,13 @@ def main():
             ws1.conditional_formatting.add('U2:U'+str(ws1.max_row), CellIsRule(operator='notBetween', formula=['-' + width,width], fill=red_fill))
             ws1.conditional_formatting.add('V2:V'+str(ws1.max_row), CellIsRule(operator='notBetween', formula=['-' + height,height], fill=red_fill))
 
-        # create "Dimensions" sheet & paste data
-        ws2 = wb.create_sheet()
-        dim.paste2Excel(ws2,"Dimensions")
-
         # create "Contour Verify" sheet & paste data
+        ws2 = wb.create_sheet()
+        dim.paste2Excel(ws2,"Contour Verify")
+
+        # create "Corner" sheet & paste data
         ws3 = wb.create_sheet()
-        c_v.paste2Excel(ws3,"Contour Verify")
+        c_v.paste2Excel(ws3,"Corner")
 
         # save workbook
         wb.save(excel_file)
@@ -188,14 +189,14 @@ def main():
             messagebox.showerror("Error", "Please input numeric tolerances")
             return
 
-        # 
+        # get the log path
         log_path = import_entry.get()
         
         if log_path == '':
             messagebox.showerror("Error", "You must input a log file!")
             return
         elif not os.path.exists(log_path):
-            messagebox.showerror("Error","log_path does not exist...")
+            messagebox.showerror("Error","Log does not exist...")
             return
         
         # check if excel file can be closed
