@@ -1,7 +1,7 @@
-# summary: main.py gets dim log and outputs an Excel table formatted for analysis
+# summary: main.py converts log to an Excel speadsheet formatted for analysis
  
-# import modules
-import sys, os, csv
+# import required modules
+import sys, os, csv, shutil
 from sys import exit
 from os.path import exists
 import pandas as pd
@@ -14,22 +14,33 @@ from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.worksheet.cell_range import CellRange 
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
-log_path = None
-excel_path = None
+def resource_path(relative_path):
 
-def main():
+    # get absolute path to resource
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
 
-    def resource_path(relative_path):
-        # get absolute path to resource
-        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-        return os.path.join(base_path, relative_path)
+    # return the path for the python executable
+    return os.path.join(base_path, relative_path)
 
-    def script(log_path,length=0,width=0,height=0):
+def download_file():
+
+    # let the user download a copy of the Expression Editor xml
+    src = r"C:/Users/mohammo/Documents/Projects/Dims Template Code/Python/LogtoExcel/Dimension_Expression_Editor.xml"
+    des = filedialog.asksaveasfilename(title="Download", initialdir="Downloads", initialfile="Dimension_Expression_Editor.xml",  filetypes=[("Expression Editor",".xml")])
+
+    # return the copied file
+    return shutil.copyfile(src,des)
+
+def run(len_entry,wid_entry,hei_entry,window,import_entry,export_entry):
+
+    def script():
+        
         # retrieve excel file path
         excel_file = export_entry.get()
 
         class Log:
             def __init__(self):
+                
                 # create empty data list
                 self.data = []
 
@@ -37,30 +48,26 @@ def main():
                 self.headers = self.getHeaders()
                 
             def getData(self):
-        
-                # check if user imported file 
-                if log_path != '':
-                    # append file contents into data list 
-                    with open(log_path) as logFile:
-                        for row in csv.reader(logFile, delimiter=';'):
-                            self.data.append(row)
-                else:
-                    # error if no file was imported
-                    print("No log file was imported")
-                    exit()
+                
+                # read log file & split the data
+                with open(log_path) as logFile:
+                    for row in csv.reader(logFile, delimiter=';'):
+                        self.data.append(row)
 
             def parseData(self):
-                # create data frame and parse through data
+                
+                # create data frame & parse through data
                 self.getData()
                 self.data = pd.DataFrame(self.data).iloc[:,1:-1].dropna()
 
             def getHeaders(self, line_number=None):
+                
                 # specify header file
                 filename = resource_path("headers.txt")
 
-                # open header file
+                # open header file & get all the headers
                 with open(filename) as file:
-                    # get all headers
+
                     if line_number is None:
                         return [x.strip(' ') for x in (" ".join(line.strip() for line in file)).split(';')]
                     else:
@@ -72,12 +79,14 @@ def main():
         class Category(Log):
 
             def __init__(self, index=None):
+                
                 # calls original __init__()
                 super().__init__()
                 self.headers = self.getHeaders(index)
 
             def __call__(self,other):
-                # get initial headers and its range
+                
+                # get initial headers & its range
                 initial_headers = self.getHeaders(0)
                 initial_range = [x + 1 for x, header in enumerate(initial_headers)]
                 
@@ -86,32 +95,35 @@ def main():
                 self.data = (other.data[self.range]).set_axis((initial_headers + self.headers),axis=1)
 
             def formatTable(self, worksheet):
-                # define range
+                
+                # define the range of cells
                 full_range = CellRange(min_col=worksheet.min_column,
-                                       min_row=worksheet.min_row,
-                                       max_col=worksheet.max_column,
-                                       max_row=worksheet.max_row).coord
+                                        min_row=worksheet.min_row,
+                                        max_col=worksheet.max_column,
+                                        max_row=worksheet.max_row).coord
 
                 # set table format
                 mediumStyle =TableStyleInfo(name='TableStyleMedium1',
                                             showRowStripes=True)
                 # create a table
                 table = Table(ref=full_range,
-                              displayName=(worksheet.title).replace(" ", "_"),
-                              tableStyleInfo=mediumStyle)
+                                displayName=(worksheet.title).replace(" ", "_"),
+                                tableStyleInfo=mediumStyle)
 
                 # add the table to the worksheet
                 worksheet.add_table(table)
 
             def paste2Excel(self,worksheet,title,add_cols=None):
+                
                 # title the worksheet
                 worksheet.title = title
                 
+                # add occupied columns
                 if not add_cols == None:
                     content = [''] * len(add_cols)
                     self.data[add_cols] = content 
 
-                # paste data frame into Excel worksheet
+                # paste the data frame into an Excel worksheet
                 for rows in dataframe_to_rows(self.data, index=False, header=True):
                     worksheet.append(rows)
 
@@ -124,29 +136,28 @@ def main():
         # parse data from log
         log.parseData()
 
+        # initialize "Results" category
+        res = Category(1)
+        res(log)
+
         # initialize "Dimensions" category
-        dim = Category(1)
+        dim = Category(2)
         dim(log)
 
         # initialize "Contour Verify" category
-        c_v = Category(2)
+        c_v = Category(3)
         c_v(log)
-
-        # initialize "Corner" category
-        cor = Category(3)
-        cor(log)
 
         # open a workbook
         wb = Workbook()
-        
-        # adding columns
+
+        # create "Results" sheet & paste data
         ws1 = wb.active
-        added_info_cols = ['Orientation','Shape']
         expected_cols = ['Expected L','Expected W','Expected H']
         error_cols = ['Error L','Error W','Error H']
-        dim.paste2Excel(ws1,"Dimensions", expected_cols + error_cols + added_info_cols)
+        res.paste2Excel(ws1,"Results", expected_cols + error_cols)
 
-        # create a formula to find difference between measured & expected dimensions (ex. '=' )
+        # create a formula to find difference between measured & expected dimensions
         for row_num in range(2, ws1.max_row+1):
             ws1['T'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(Q'+str(row_num)+',1)))),"",F'+str (row_num)+'-Q'+str (row_num)+')'
             ws1['U'+ str(row_num)] = '=IF(NOT(ISNUMBER(VALUE(LEFT(R'+str(row_num)+',1)))),"",G'+str (row_num)+'-R'+str (row_num)+')'
@@ -165,91 +176,75 @@ def main():
 
         # create "Corner" sheet & paste data
         ws3 = wb.create_sheet()
-        c_v.paste2Excel(ws3,"Corner")
+        c_v.paste2Excel(ws3,"CCorner")
 
         # save workbook
         wb.save(excel_file)
 
         # check if excel was created from log
         if exists(excel_file):
-           messagebox.showinfo(title="Success!", message="Log file successfully parsed to Excel!")
-           os.startfile(excel_file)
+            messagebox.showinfo(title="Success!", message="Log file successfully parsed to Excel!")
+            os.startfile(excel_file)
         else:
-            print("ERROR: Log file unsuccessfully parsed to Excel...")
+            print("ERROR: Script did not run successfully to Excel...")
 
-    def with_tol():
-        length = len_entry.get()
-        width = wid_entry.get()
-        height = hei_entry.get()
+    length = len_entry.get()
+    width = wid_entry.get()
+    height = hei_entry.get()
 
-        # ensure that user inputs tolerances
-        try:
-            int(length), int(width), int(height)
-        except:
-            messagebox.showerror("Error", "Please input numeric tolerances")
-            return
+    # ensure that user inputs tolerances
+    try:
+        int(length), int(width), int(height)
+    except:
+        messagebox.showerror("Error", "Please input numeric tolerances")
+        return
 
-        # get the log path
-        log_path = import_entry.get()
-        
-        if log_path == '':
-            messagebox.showerror("Error", "You must input a log file!")
-            return
-        elif not os.path.exists(log_path):
-            messagebox.showerror("Error","Log does not exist...")
-            return
-        
-        # check if excel file can be closed
-        if not close_excel():
-
-            messagebox.showerror("Error","\"dims.xlsx\" is still open. You need to close it!")
-            return
-
-        try:
-            script(log_path,length,width,height)
-        except:
-            messagebox.showerror("Error", "Script cannot parse data. Check if log is formatted correctly!")
-            return
-        
-        window.destroy()
-        exit(0)
-
-    def import_file():
-        log_path = filedialog.askopenfilename(title="Select a File",filetypes=[("Log files", ".txt .log")])
-        
-        import_entry.delete(0,"end")
-        import_entry.insert(0,log_path)
+    # check if the log file exists
+    log_path = import_entry.get()
+    
+    if not os.path.exists(log_path):
+        messagebox.showerror("Error","You must input an existing log file")
         return
     
-    def export_file():
-       # specify excel file path
-       excel_path = filedialog.asksaveasfilename(title="Save as", filetypes=[("Excel File",".xlsx")])
-       
-       # add ".xlsx" to the name of excel file
-       export_entry.delete(0,"end")
-       export_entry.insert(0,excel_path + '.xlsx')
-       return
-        
-    def close_excel():
-        # specify excel file name
-        excel_file = export_entry.get()
+    # attempt to run the script, otherwise output error message
+    try:
+        script()
+    except:
+        messagebox.showerror("Error", "Script cannot parse data. Check if log is formatted correctly!")
+        return
+    
+    # close the UI & python script
+    window.destroy()
+    exit(0)
 
-        # remove if "dims.xlsx" exists
-        if not exists(excel_file):
-            f = open(excel_file, 'x')
-            return True
-        else:
-            try:
-                os.remove(excel_file)
-                return True
-            except:
-                return False
+def import_file(import_entry):
+
+    # prompt user to input log file
+    log_path = filedialog.askopenfilename(title="Select a File",filetypes=[("Log files", ".txt .log")])
+    
+    # populate log path to UI entry
+    import_entry.delete(0,"end")
+    import_entry.insert(0,log_path)
+
+    return
+
+def export_file(export_entry):
+
+    # prompt user to specify output location for excel file
+    excel_path = filedialog.asksaveasfilename(title="Save as", filetypes=[("Excel File",".xlsx")], defaultextension=".xlsx")
+    
+    # populate excel path to UI entry
+    export_entry.delete(0,"end")
+    export_entry.insert(0,excel_path)
+
+    return
+    
+def main():
 
     # create a UI window
     window = tk.Tk()
     window.title("Input Log Data")
     window.geometry("600x300")
-
     frame = tk.Frame(window)
     frame.pack()
 
@@ -282,21 +277,25 @@ def main():
     # create an "Input File" button
     import_entry = tk.Entry(file_frame, width=50)
     import_entry.grid(row=0, column=1)
-    import_button = tk.Button(file_frame, text="Import file", width= 8, command=lambda:import_file())
+    import_button = tk.Button(file_frame, text="Import file", width= 8, command=lambda:import_file(import_entry))
     import_button.grid(row=0, column=0)
 
     # create an "Output Excel" button
     export_entry = tk.Entry(file_frame, width=50)
     export_entry.grid(row=1, column=1)
-    export_button = tk.Button(file_frame, text="Save as", width= 8, command=lambda:export_file())
+    export_button = tk.Button(file_frame, text="Save as", width= 8, command=lambda:export_file(export_entry))
     export_button.grid(row=1, column=0)
+
+    # create a "Download Expression Editor" button
+    download_button = tk.Button(file_frame, text="Download", width= 50, command=lambda:download_file())
+    download_button.grid(row=2, column=1)
 
     # declare a "Run with" frame
     validate_frame = tk.LabelFrame(frame, text="Run the script?")
     validate_frame.grid(row=3, column=0)
 
-    # create button for "With" & "Without" tolerances
-    with_button = tk.Button(validate_frame, text="Run", width=40, command=with_tol)
+    # create a "Run" button 
+    with_button = tk.Button(validate_frame, text="Run", width=40, command=lambda:run(len_entry,wid_entry,hei_entry,window,import_entry,export_entry))
     with_button.grid(row=0, column=0)
 
     # adjust padding
